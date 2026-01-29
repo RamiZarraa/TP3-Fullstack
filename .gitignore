@@ -1,0 +1,123 @@
+# ========================================
+# BACKEND (Java / Maven / Spring Boot)
+# ========================================
+
+# Maven
+shop-server/target/
+shop-server/.mvn/
+shop-server/mvnw
+shop-server/mvnw.cmd
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+!shop-server/.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ IDEA
+shop-server/.idea/
+shop-server/*.iml
+shop-server/*.iws
+shop-server/*.ipr
+.idea/
+*.iml
+
+# Eclipse
+shop-server/.project
+shop-server/.classpath
+shop-server/.settings/
+.project
+.classpath
+.settings/
+
+# Logs
+shop-server/logs/
+*.log
+
+# Backups SQL
+shop-server/sql/*.backup
+shop-server/sql/*.original
+shop-server/sql/*.bak
+
+# ========================================
+# FRONTEND (React / Node.js)
+# ========================================
+
+# Node modules (déjà dans shop-client/.gitignore mais on s'assure)
+shop-client/node_modules/
+shop-client/build/
+shop-client/.pnp/
+shop-client/.pnp.js
+
+# Coverage
+shop-client/coverage/
+
+# Environment variables
+shop-client/.env.local
+shop-client/.env.development.local
+shop-client/.env.test.local
+shop-client/.env.production.local
+
+# Logs
+shop-client/npm-debug.log*
+shop-client/yarn-debug.log*
+shop-client/yarn-error.log*
+
+# ========================================
+# DOCKER
+# ========================================
+
+# Volumes Docker
+postgres/
+
+# ========================================
+# SYSTEM FILES
+# ========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ========================================
+# IDE / EDITORS
+# ========================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================================
+# AUTRES
+# ========================================
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.7z

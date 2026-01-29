@@ -1,0 +1,79 @@
+services:
+  db:
+    container_name: shop-db
+    image: postgres:17-alpine
+    hostname: "psql_docker"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+      - ./shop-server/sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./shop-server/sql/fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
+    networks:
+      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+  elasticsearch:
+    container_name: shop-elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.2
+    hostname: "elasticsearch_docker"
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+    ports:
+      - "9200:9200"
+    networks:
+      - postgres
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+      start_period: 60s
+
+  api:
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    container_name: shop-server
+    build: ./shop-server
+    ports:
+      - "8080:8080"
+    networks:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://shop-db:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_SEARCH_BACKEND_HOSTS=shop-elasticsearch:9200
+
+  front:
+    container_name: shop-client
+    build: ./shop-client
+    ports:
+      - "4200:4200"
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
