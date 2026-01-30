@@ -7,7 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -68,21 +71,6 @@ public class ProductController {
         }
     }
 
-    @Operation(summary = "Get products (filtering by shop and category is possible)")
-    @GetMapping
-    public ResponseEntity<Page<Product>> getProductsOfShop(
-            @Parameter(description = "Results page you want to retrieve (0..N)", example = "0") 
-            Pageable pageable,
-            @Parameter(description = "Id of the shop", example = "1") 
-            @RequestParam(required = false) Optional<Long> shopId,
-            @Parameter(description = "Id of the category", example = "1") 
-            @RequestParam(required = false) Optional<Long> categoryId
-    ) {
-        return ResponseEntity.ok(
-                service.getShopProductList(shopId, categoryId, pageable)
-        );
-    }
-
     @Operation(summary = "Update a product")
     @PutMapping
     public ResponseEntity<Product> updateProduct(@Valid @RequestBody Product product, Errors errors) {
@@ -96,5 +84,34 @@ public class ProductController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
+    }
+
+    @Operation(summary = "Get products with search and sort options")
+    @GetMapping
+    public ResponseEntity<Page<Product>> getProducts(
+            @Parameter(description = "Search term") @RequestParam(required = false) String search,
+            @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "id") String sortBy,
+            @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDirection,
+            @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Shop ID") @RequestParam(required = false) Optional<Long> shopId,
+            @Parameter(description = "Category ID") @RequestParam(required = false) Optional<Long> categoryId) {
+
+        // ✅ CORRECTION : Créer le Sort AVANT le Pageable
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection)
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Product> products;
+
+        if (search != null && !search.trim().isEmpty()) {
+            products = service.searchProducts(search, pageable);
+        } else {
+            products = service.getShopProductList(shopId, categoryId, pageable);
+        }
+
+        return ResponseEntity.ok(products);
     }
 }

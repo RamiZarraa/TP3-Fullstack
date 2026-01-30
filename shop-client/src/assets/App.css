@@ -18,3 +18,103 @@ code {
     margin: 0% 20%;
     padding: 0 0;
 }
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Mobile first */
+* {
+    box-sizing: border-box;
+}
+
+/* Fix pour les boutons qui dépassent */
+.MuiBox-root {
+    overflow: visible !important;
+}
+
+.MuiButton-root {
+    white-space: nowrap !important;
+    min-width: fit-content !important;
+}
+
+/* Tablets et petits écrans */
+@media (max-width: 768px) {
+    .App {
+        margin: 5% 5% !important;
+    }
+
+    .header {
+        margin: 0% 5% !important;
+    }
+
+    /* Layout général */
+    .MuiContainer-root {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    /* Cards */
+    .MuiCard-root {
+        margin-bottom: 16px;
+    }
+
+    /* Formulaires */
+    .MuiTextField-root,
+    .MuiFormControl-root {
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Boutons */
+    .MuiFab-root {
+        position: fixed !important;
+        bottom: 16px !important;
+        right: 16px !important;
+        z-index: 1000;
+    }
+    
+    .MuiButton-root {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+
+    /* Grilles */
+    .MuiGrid-item {
+        padding: 8px !important;
+    }
+
+    /* Typography */
+    h1, h2, .MuiTypography-h1, .MuiTypography-h2 {
+        font-size: 1.75rem !important;
+    }
+
+    h3, .MuiTypography-h3 {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Très petits écrans */
+@media (max-width: 480px) {
+    .App {
+        margin: 3% 3% !important;
+    }
+
+    .header {
+        margin: 0% 3% !important;
+    }
+
+    h1, h2, .MuiTypography-h1, .MuiTypography-h2 {
+        font-size: 1.5rem !important;
+    }
+
+    .MuiButton-root {
+        font-size: 0.875rem !important;
+        padding: 6px 12px !important;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1200px) {
+    .MuiContainer-root {
+        max-width: 1400px !important;
+    }
+}

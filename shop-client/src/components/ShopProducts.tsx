@@ -1,7 +1,7 @@
 import { CategoryService, ProductService } from '../services';
 import { useEffect, useState } from 'react';
-import { Category, Product, ResponseArray } from '../types';
-import { Box, FormControl, Grid, Pagination, Typography }  from '@mui/material';
+import { Category, Product } from '../types';
+import { Box, FormControl, Grid, Pagination, Typography } from '@mui/material';
 import ProductCard from './ProductCard';
 import { useAppContext } from '../context';
 import SelectPaginate from './SelectPaginate';
@@ -20,21 +20,26 @@ const ShopProducts = ({ shopId }: Props) => {
 
     const getProducts = () => {
         setLoading(true);
-        let promisedProducts: Promise<ResponseArray<Product>>;
 
         if (filter && filter.name !== 'Toutes les catégories') {
-            promisedProducts = ProductService.getProductsbyShopAndCategory(shopId, filter.id, pageSelected, 6);
+            ProductService.getProductsbyShopAndCategory(shopId, filter.id, pageSelected, 6)
+                .then((res) => {
+                    setProducts(res.data.content);
+                    setCount(res.data.totalPages);
+                    setPage(res.data.pageable.pageNumber + 1);
+                })
+                .catch((err) => console.error(err))
+                .finally(() => setLoading(false));
         } else {
-            promisedProducts = ProductService.getProductsbyShop(shopId, pageSelected, 6);
+            ProductService.getProductsbyShop(shopId, pageSelected, 6)
+                .then((res) => {
+                    setProducts(res.data.content);
+                    setCount(res.data.totalPages);
+                    setPage(res.data.pageable.pageNumber + 1);
+                })
+                .catch((err) => console.error(err))
+                .finally(() => setLoading(false));
         }
-
-        promisedProducts
-            .then((res) => {
-                setProducts(res.data.content);
-                setCount(res.data.totalPages);
-                setPage(res.data.pageable.pageNumber + 1);
-            })
-            .finally(() => setLoading(false));
     };
 
     useEffect(() => {
@@ -47,15 +52,7 @@ const ShopProducts = ({ shopId }: Props) => {
 
     return (
         <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-            {/* Filters */}
-            <Box
-                sx={{
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                }}
-            >
+            <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                 <FormControl sx={{ minWidth: 220 }}>
                     <SelectPaginate
                         value={filter}
@@ -75,7 +72,7 @@ const ShopProducts = ({ shopId }: Props) => {
                 ))}
             </Grid>
 
-            {products?.length !== 0 ? (
+            {products && products.length > 0 ? (
                 <Pagination count={count} page={page} siblingCount={1} onChange={handleChangePagination} />
             ) : (
                 <Typography variant="h6" sx={{ mt: -4 }}>

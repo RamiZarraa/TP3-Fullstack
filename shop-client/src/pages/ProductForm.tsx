@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Box, Button, Divider, FormControl, InputAdornment, Paper, TextField, Typography }  from '@mui/material';
+import { Box, Button, Divider, FormControl, InputAdornment, Paper, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SelectPaginate } from '../components';
@@ -81,13 +81,13 @@ const ProductForm = () => {
 
     const editProduct = (productToEdit: MinimalProduct) => {
         setLoading(true);
-        ProductService.editProduct(productToEdit)
+        ProductService.editProduct(id as string, productToEdit)
             .then(() => {
                 navigate(`/product/${id}`);
                 setToast({ severity: 'success', message: 'Le produit a bien été modifié' });
             })
             .catch(() => {
-                setToast({ severity: 'error', message: 'Une erreur est survenue lors de la modification' });
+                setToast({ severity: 'error', message: 'Une erreur est survenue' });
             })
             .finally(() => {
                 setLoading(false);

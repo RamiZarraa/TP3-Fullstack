@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByOrderByIdAsc(Pageable pageable);
@@ -13,7 +14,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByShop(Long shopId, Pageable pageable);
 
     @Query(value = "SELECT * FROM Products p WHERE p.shop_id = ?1 AND p.id IN (SELECT pc.product_id FROM "
-            + "products_categories pc WHERE pc.category_id = ?2)",
-           nativeQuery = true)
+            + "products_categories pc WHERE pc.category_id = ?2)", nativeQuery = true)
     Page<Product> findByShopAndCategory(Long shopId, Long categoryId, Pageable pageable);
+
+    @Query(value = "SELECT DISTINCT p.* FROM products p " +
+            "JOIN products_localized_product plp ON p.id = plp.product_id " +
+            "JOIN localized_product lp ON plp.localized_product_id = lp.id " +
+            "WHERE LOWER(lp.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(lp.description) LIKE LOWER(CONCAT('%', :search, '%'))",
+            nativeQuery = true)
+    Page<Product> searchProducts(@Param("search") String search, Pageable pageable);
 }

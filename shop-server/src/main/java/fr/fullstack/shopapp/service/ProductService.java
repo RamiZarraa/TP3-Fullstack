@@ -66,7 +66,14 @@ public class ProductService {
             return productRepository.findByShop(shopId.get(), pageable);
         }
 
-        return productRepository.findByOrderByIdAsc(pageable);
+        return productRepository.findAll(pageable);
+    }
+
+    public Page<Product> searchProducts(String search, Pageable pageable) {
+        if (search == null || search.trim().isEmpty()) {
+            return productRepository.findAll(pageable);
+        }
+        return productRepository.searchProducts(search, pageable);
     }
 
     @Transactional
