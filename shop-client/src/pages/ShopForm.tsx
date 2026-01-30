@@ -60,14 +60,15 @@ const ShopForm = () => {
                 navigate('/');
                 setToast({ severity: 'success', message: 'La boutique a bien été créée' });
             })
-            .catch(() => {
-                setToast({ severity: 'error', message: 'Une erreur est survenue lors de la création' });
+            .catch((error) => {
+                // ✅ AFFICHER LE MESSAGE D'ERREUR DU BACKEND
+                const errorMessage = error.response?.data?.message || 'Une erreur est survenue lors de la création';
+                setToast({ severity: 'error', message: errorMessage });
             })
             .finally(() => {
                 setLoading(false);
             });
     };
-
     const editShop = () => {
         setLoading(true);
         ShopService.editShop(shop)
@@ -75,14 +76,15 @@ const ShopForm = () => {
                 navigate(`/shop/${id}`);
                 setToast({ severity: 'success', message: 'La boutique a bien été modifiée' });
             })
-            .catch(() => {
-                setToast({ severity: 'error', message: 'Une erreur est survenue lors de la modification' });
+            .catch((error) => {
+                // ✅ AFFICHER LE MESSAGE D'ERREUR DU BACKEND
+                const errorMessage = error.response?.data?.message || 'Une erreur est survenue lors de la modification';
+                setToast({ severity: 'error', message: errorMessage });
             })
             .finally(() => {
                 setLoading(false);
             });
     };
-
     useEffect(() => {
         !isAddMode && id && getShop(id);
     }, [isAddMode]);
@@ -111,7 +113,10 @@ const ShopForm = () => {
     };
 
     const handleSubmit = () => {
-        if (!validate()) return;
+        if (!validate()) {
+            console.log('Validation errors:', errors);
+            return;
+        }
         if (isAddMode) {
             createShop();
         } else {
@@ -199,7 +204,9 @@ const ShopForm = () => {
                                         <TimePicker
                                             label="Ouvre à"
                                             ampm={false}
-                                            value={openingHour.openAt ? dayjs(`2014-08-18T${openingHour.openAt}`) : null}
+                                            value={
+                                                openingHour.openAt ? dayjs(`2014-08-18T${openingHour.openAt}`) : null
+                                            }
                                             onChange={(v: Dayjs | null) =>
                                                 handleChange(index, 'openAt', v?.format('HH:mm:ss'))
                                             }
@@ -209,7 +216,9 @@ const ShopForm = () => {
                                         <TimePicker
                                             label="Ferme à"
                                             ampm={false}
-                                            value={openingHour.closeAt ? dayjs(`2014-08-18T${openingHour.closeAt}`) : null}
+                                            value={
+                                                openingHour.closeAt ? dayjs(`2014-08-18T${openingHour.closeAt}`) : null
+                                            }
                                             onChange={(v: Dayjs | null) =>
                                                 handleChange(index, 'closeAt', v?.format('HH:mm:ss'))
                                             }

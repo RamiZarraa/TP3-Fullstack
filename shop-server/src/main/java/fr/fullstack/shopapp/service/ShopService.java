@@ -1,5 +1,7 @@
 package fr.fullstack.shopapp.service;
 
+import fr.fullstack.shopapp.exception.OpeningHoursConflictException;
+import fr.fullstack.shopapp.model.OpeningHoursShop;
 import fr.fullstack.shopapp.model.Product;
 import fr.fullstack.shopapp.model.Shop;
 import fr.fullstack.shopapp.repository.ShopRepository;
@@ -24,6 +26,7 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 import org.hibernate.search.engine.search.predicate.dsl.PredicateFinalStep;
 import java.time.DayOfWeek;
+import java.time.LocalTime;
 
 @Service
 public class ShopService {
@@ -32,6 +35,68 @@ public class ShopService {
 
     @Autowired
     private ShopRepository shopRepository;
+
+    // ========================================
+    // NOUVELLE MÉTHODE : Validation E_FIX_10
+    // ========================================
+
+    /**
+     * Valide que les horaires d'ouverture ne se chevauchent pas pour un même jour
+     * 
+     * @param openingHours Liste des horaires d'ouverture
+     * @throws IllegalArgumentException si des horaires se chevauchent
+     */
+    private void validateOpeningHours(List<OpeningHoursShop> openingHours) {
+        if (openingHours == null || openingHours.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < openingHours.size(); i++) {
+            for (int j = i + 1; j < openingHours.size(); j++) {
+                OpeningHoursShop h1 = openingHours.get(i);
+                OpeningHoursShop h2 = openingHours.get(j);
+
+                if (h1.getDay() == h2.getDay()) {
+                    LocalTime start1 = h1.getOpenAt();
+                    LocalTime end1 = h1.getCloseAt();
+                    LocalTime start2 = h2.getOpenAt();
+                    LocalTime end2 = h2.getCloseAt();
+
+                    if (start1.isBefore(end2) && start2.isBefore(end1)) {
+                        String dayName = getDayName((int) h1.getDay());
+                        // de IllegalArgumentException en OpeningHoursConflictException
+                        throw new OpeningHoursConflictException(
+                                "Conflit d'horaires pour le " + dayName +
+                                        " : " + start1 + "-" + end1 + " chevauche " + start2 + "-" + end2);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Convertit le numéro du jour en nom
+     */
+    private String getDayName(int day) {
+        switch (day) {
+            case 1:
+                return "Lundi";
+            case 2:
+                return "Mardi";
+            case 3:
+                return "Mercredi";
+            case 4:
+                return "Jeudi";
+            case 5:
+                return "Vendredi";
+            case 6:
+                return "Samedi";
+            case 7:
+                return "Dimanche";
+            default:
+                return "Jour inconnu";
+        }
+    }
 
     @Transactional(readOnly = true)
     public Page<Shop> searchShops(
@@ -46,59 +111,49 @@ public class ShopService {
                 .where((f, root) -> {
                     List<PredicateFinalStep> predicates = new ArrayList<>();
 
-                    // ✅ Full-text search avec meilleur scoring
                     if (query != null && !query.isBlank()) {
                         predicates.add(f.bool()
-                                // 1. Correspondance exacte (boost x10)
                                 .should(f.match()
                                         .field("name")
                                         .matching(query)
                                         .boost(10.0f))
-                                // 2. Correspondance exacte case-insensitive (boost x8)
                                 .should(f.match()
                                         .field("name_sort")
                                         .matching(query.toLowerCase())
                                         .boost(8.0f))
-                                // 3. Phrase exacte (boost x5)
                                 .should(f.phrase()
                                         .field("name")
                                         .matching(query)
                                         .boost(5.0f))
-                                // 4. Fuzzy matching pour fautes de frappe (boost x2)
                                 .should(f.match()
                                         .field("name")
                                         .matching(query)
                                         .fuzzy(2)
                                         .boost(2.0f))
-                                // 5. Wildcard pour recherche partielle (boost x1)
                                 .should(f.wildcard()
                                         .field("name")
                                         .matching(query.toLowerCase() + "*")
                                         .boost(1.0f)));
                     }
 
-                    // Filter by vacation status
                     if (inVacations.isPresent()) {
                         predicates.add(f.match()
                                 .field("inVacations")
                                 .matching(inVacations.get()));
                     }
 
-                    // Filter by creation date
                     if (createdAfter.isPresent()) {
                         predicates.add(f.range()
                                 .field("createdAt")
                                 .atLeast(createdAfter.get()));
                     }
 
-                    // Filter by opening day
                     if (openOn.isPresent()) {
                         predicates.add(f.match()
                                 .field("openingHours.day")
                                 .matching(openOn.get().getValue()));
                     }
 
-                    // Combine all predicates with AND
                     if (predicates.isEmpty()) {
                         root.add(f.matchAll());
                     } else {
@@ -108,7 +163,6 @@ public class ShopService {
                     }
                 });
 
-        // Tri
         var sortedQuery = searchQueryBuilder.sort(sortBuilder -> {
             if (pageable.getSort().isSorted()) {
                 Sort.Order order = pageable.getSort().iterator().next();
@@ -121,12 +175,10 @@ public class ShopService {
 
                 return sortBuilder.field(field).order(direction);
             } else {
-                // ✅ Tri par score (pertinence) par défaut
                 return sortBuilder.score();
             }
         });
 
-        // Execute search with pagination
         var searchResult = sortedQuery.fetch((int) pageable.getOffset(), pageable.getPageSize());
 
         List<Shop> shops = searchResult.hits();
@@ -135,15 +187,26 @@ public class ShopService {
         return new PageImpl<>(shops, pageable, total);
     }
 
-    // ...existing code...
+    /**
+     * Valide que les horaires d'ouverture ne se chevauchent pas pour un même jour
+     * 
+     * @param openingHours Liste des horaires d'ouverture
+     * @throws OpeningHoursConflictException si des horaires se chevauchent
+     */
 
     @Transactional
     public Shop createShop(Shop shop) throws Exception {
         try {
+            // ✅ VALIDATION AJOUTÉE (E_FIX_10)
+            validateOpeningHours(shop.getOpeningHours());
+
             Shop newShop = shopRepository.save(shop);
             em.flush();
             em.refresh(newShop);
             return newShop;
+        } catch (IllegalArgumentException e) {
+            // Renvoyer l'erreur de validation
+            throw new Exception(e.getMessage());
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
@@ -197,7 +260,14 @@ public class ShopService {
     public Shop updateShop(Shop shop) throws Exception {
         try {
             getShop(shop.getId());
+
+            // ✅ VALIDATION AJOUTÉE (E_FIX_10)
+            validateOpeningHours(shop.getOpeningHours());
+
             return this.createShop(shop);
+        } catch (IllegalArgumentException e) {
+            // Renvoyer l'erreur de validation
+            throw new Exception(e.getMessage());
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }

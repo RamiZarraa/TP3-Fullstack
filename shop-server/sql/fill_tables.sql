@@ -719,3 +719,15 @@ insert into products_categories (product_id, category_id) values (292, 45);
 -- Hibernate Sequence --
 
 create sequence hibernate_sequence start 295 increment 1;
+
+-- ========================================
+-- SYNCHRONISER LES SÉQUENCES (FIX DUPLICATE KEY)
+-- ========================================
+
+-- Réinitialiser les séquences après l'insertion manuelle des données
+SELECT setval('shops_id_seq', (SELECT MAX(id) FROM shops));
+SELECT setval('opening_hours_id_seq', (SELECT MAX(id) FROM opening_hours));
+SELECT setval('products_id_seq', (SELECT MAX(id) FROM products));
+SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
+SELECT setval('localized_product_id_seq', (SELECT MAX(id) FROM localized_product));
+SELECT setval('translation_id_seq', (SELECT MAX(id) FROM translation));
