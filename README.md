@@ -9,6 +9,10 @@ Le but de ce projet est de développer un système qui permet la gestion de bout
 3. Technologies
 4. Utilisation
 5. Documentation de l'API
+6. Responsive design
+7. Workflow GitFlow
+8. Elasticsearch
+9. Troubleshooting
 
 ## Informations générales
 
@@ -32,9 +36,10 @@ L'archive contient les fichiers et répertoires suivants :
 
 Voici la liste des technologies utilisées dans le projet :
 
-- React pour le front-end
+- React pour le front-end (avec Material UI)
 - Spring Boot pour le back-end
 - PostgreSQL pour la base de données
+- Elasticsearch pour la recherche avancée
 
 Pour la base de données, j'ai fait le choix d'utiliser PostgreSQL. En effet, je voulais utiliser une base de données SQL car les relations entre les données dans ce projet sont importantes et que les schémas des données sont stables. Mon choix s'est alors porté sur PostgreSQL car ce SGBD est performant et propose de nombreux types comme timezone-aware timestamps ou ranges que MySQL ne propose pas. Ces types pourront être utiles pour d'éventuelles évolutions du projet.
 
@@ -47,6 +52,25 @@ Le front-end de l'application se trouve ensuite à l'adresse http://localhost:42
 ## Documentation de l'API
 
 Une [documentation swagger](http://localhost:8080/swagger-ui/#/shop-controller) de l'API est disponible.
+Toutes les routes (boutiques, produits, catégories) sont documentées avec exemples de paramètres et de réponses.
+
+## Responsive design
+
+L'interface est responsive : elle s'adapte automatiquement aux mobiles, tablettes et écrans larges.
+
+Menu hamburger sur mobile
+Grilles adaptatives
+Boutons et formulaires adaptés à toutes les tailles d'écran
+
+## Workflow GitFlow
+Ce projet utilise GitFlow pour la gestion des branches :
+
+main : branche de production
+develop : branche de développement
+feature/* : pour chaque nouvelle fonctionnalité
+release/* : préparation d'une version stable
+hotfix/* : corrections urgentes
+Les branches sont fusionnées selon le cycle GitFlow pour garantir un historique propre et lisible.
 
 ## Elasticsearch
 
@@ -58,7 +82,7 @@ docker run --net tp3_postgres -p 5601:5601 docker.elastic.co/kibana/kibana:7.17.
 Ensuite aller sur l'URL http://localhost:5601/app/dev_tools#/console
 
 Par défaut hibernate search créer les index avec comme modèle idx_NomDeLEntité-000001
-Donc pour accéder aux données des boutiques présente dans Elasticsearch, vous pouvez faire la requête suivante : 
+Donc pour accéder aux données des boutiques présente dans Elasticsearch, vous pouvez faire la requête suivante :
 
 ```
 GET idx_shops-000001/_search
@@ -68,7 +92,6 @@ GET idx_shops-000001/_search
   }
 }
 ```
-
 
 ## Troubleshooting
 
