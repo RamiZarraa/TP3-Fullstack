@@ -8,8 +8,7 @@ import {
     InputLabel,
     MenuItem,
     Select,
-    TextField,
-}  from '@mui/material';
+} from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -85,7 +84,7 @@ const Filters = ({ setUrlFilters, setSort, sort }: Props) => {
                 Filtrer
             </Button>
 
-            <Dialog open={open} onClose={handleClose}>
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
                 <DialogTitle>Filtrer les boutiques</DialogTitle>
 
                 <DialogContent>
@@ -129,14 +128,27 @@ const Filters = ({ setUrlFilters, setSort, sort }: Props) => {
                     </LocalizationProvider>
                 </DialogContent>
 
-                <DialogActions>
-                    <Button autoFocus onClick={handleClear}>
+                <DialogActions
+                    sx={{
+                        flexWrap: 'wrap',
+                        gap: 1,
+                        padding: 2,
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <Button onClick={handleClear} sx={{ flex: { xs: '1 1 100%', sm: '0 1 auto' } }}>
                         Effacer
                     </Button>
-                    <Button autoFocus onClick={handleClose}>
+                    <Button onClick={handleClose} sx={{ flex: { xs: '1 1 45%', sm: '0 1 auto' } }}>
                         Annuler
                     </Button>
-                    <Button onClick={handleValidate}>Valider</Button>
+                    <Button
+                        onClick={handleValidate}
+                        variant="contained"
+                        sx={{ flex: { xs: '1 1 45%', sm: '0 1 auto' } }}
+                    >
+                        Valider
+                    </Button>
                 </DialogActions>
             </Dialog>
         </>

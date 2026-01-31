@@ -1,4 +1,4 @@
-import { Box, Paper, Typography }  from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -68,12 +68,16 @@ const ShopDetails = () => {
             elevation={1}
             sx={{
                 position: 'relative',
-                padding: 4,
+                padding: { xs: 2, sm: 3, md: 4 },
+                mt: 2,
             }}
         >
             <ActionButtons handleDelete={handleDelete} handleEdit={handleEdit} />
 
-            <Typography variant="h3" sx={{ textAlign: 'center', marginBottom: 3 }}>
+            <Typography
+                variant="h3"
+                sx={{ textAlign: 'center', marginBottom: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' } }}
+            >
                 {shop.name}
             </Typography>
             <Typography variant="h6">

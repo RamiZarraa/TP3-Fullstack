@@ -1,5 +1,12 @@
+html, body, #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
-    margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
         'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -9,14 +16,24 @@ body {
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+body > div,
+#root,
+#root > * {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+#root > div {
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
 .App {
     margin: 7% 20%;
+    margin-top: 80px;
 }
-
 .header {
-    margin: 0% 20%;
-    padding: 0 0;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* ========== RESPONSIVE DESIGN ========== */
@@ -24,37 +41,63 @@ code {
 /* Mobile first */
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-/* Fix pour les boutons qui dépassent */
-.MuiBox-root {
-    overflow: visible !important;
+.MuiAppBar-root {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
 }
 
-.MuiButton-root {
-    white-space: nowrap !important;
-    min-width: fit-content !important;
+.MuiToolbar-root {
+    min-height: 56px !important;
+    padding: 0 16px !important;
 }
-
 /* Tablets et petits écrans */
 @media (max-width: 768px) {
     .App {
-        margin: 5% 5% !important;
+        margin: 0 2% !important;
+        margin-top: 70px !important;
+        padding-top: 10px;
     }
 
     .header {
-        margin: 0% 5% !important;
+        margin: 0 !important;
+        padding: 0 8px !important; /* Petit padding horizontal */
+    }
+
+
+    /* Fix pour les boutons qui débordent */
+    .MuiBox-root {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    /* Fix pour les boutons d'action (Modifier/Supprimer) */
+    .MuiIconButton-root {
+        padding: 8px !important;
+        margin: 4px !important;
     }
 
     /* Layout général */
     .MuiContainer-root {
-        padding-left: 16px !important;
-        padding-right: 16px !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
     }
 
     /* Cards */
     .MuiCard-root {
         margin-bottom: 16px;
+    }
+
+    /* Papers - plus de padding pour les boutons d'action */
+    .MuiPaper-root {
+        padding: 48px 16px 16px 16px !important;
+        position: relative !important;
     }
 
     /* Formulaires */
@@ -64,17 +107,17 @@ code {
         margin-bottom: 12px !important;
     }
 
-    /* Boutons */
-    .MuiFab-root {
-        position: fixed !important;
-        bottom: 16px !important;
-        right: 16px !important;
-        z-index: 1000;
-    }
-    
-    .MuiButton-root {
+    /* Boutons normaux (pas les FAB) */
+    .MuiButton-root:not(.MuiFab-root) {
         width: 100% !important;
-        min-width: 100% !important;
+        min-width: fit-content !important;
+        font-size: 0.875rem !important;
+        padding: 8px 16px !important;
+    }
+
+    /* FAB uniquement */
+    .MuiFab-root {
+        font-size: 0.875rem !important;
     }
 
     /* Grilles */
@@ -85,30 +128,68 @@ code {
     /* Typography */
     h1, h2, .MuiTypography-h1, .MuiTypography-h2 {
         font-size: 1.75rem !important;
+        margin-top: 16px !important;
     }
 
     h3, .MuiTypography-h3 {
         font-size: 1.5rem !important;
     }
+
+    h4, .MuiTypography-h4 {
+        font-size: 1.25rem !important;
+    }
+    /* Fix pour les DialogActions */
+    .MuiDialogActions-root {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 16px !important;
+    }
+
+    .MuiDialogActions-root .MuiButton-root {
+        flex: 1 1 auto !important;
+        min-width: 80px !important;
+    }
 }
 
 /* Très petits écrans */
 @media (max-width: 480px) {
-    .App {
-        margin: 3% 3% !important;
+   
+
+     .App {
+        margin: 0 1% !important; 
+        margin-top: 60px !important;
+        padding-top: 10px;
     }
 
-    .header {
-        margin: 0% 3% !important;
+        .header {
+        margin: 0 !important;
+        padding: 0 4px !important; 
     }
-
     h1, h2, .MuiTypography-h1, .MuiTypography-h2 {
         font-size: 1.5rem !important;
     }
 
-    .MuiButton-root {
-        font-size: 0.875rem !important;
+    h3, .MuiTypography-h3 {
+        font-size: 1.3rem !important;
+    }
+
+    h4, .MuiTypography-h4 {
+        font-size: 1.1rem !important;
+    }
+
+    .MuiButton-root:not(.MuiFab-root) {
+        font-size: 0.8rem !important;
         padding: 6px 12px !important;
+    }
+
+    .MuiIconButton-root {
+        padding: 6px !important;
+    }
+
+     /* DialogActions encore plus compacts */
+    .MuiDialogActions-root .MuiButton-root {
+        font-size: 0.75rem !important;
+        padding: 8px 12px !important;
     }
 }
 

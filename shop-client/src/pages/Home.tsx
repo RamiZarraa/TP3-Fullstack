@@ -10,7 +10,7 @@ import {
     SelectChangeEvent,
     Typography,
     TextField,
-}  from '@mui/material';
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState } from 'react';
@@ -34,12 +34,12 @@ const Home = () => {
 
     const getShops = () => {
         setLoading(true);
-        
+
         // Parse filters from URL string
         const params = new URLSearchParams(filters);
         const inVacations = params.get('inVacations') || undefined;
         const createdAfter = params.get('createdAfter') || undefined;
-        
+
         // Use Elasticsearch search
         ShopService.searchShops(
             pageSelected,
@@ -49,7 +49,7 @@ const Home = () => {
             createdAfter,
             undefined, // createdBefore not supported
             undefined, // openOn
-            sort || undefined
+            sort || undefined,
         )
             .then((res) => {
                 setShops(res.data.content);
@@ -86,11 +86,23 @@ const Home = () => {
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
+                    mb: { xs: 2, sm: 0 }, // Ajoutez une marge en bas sur mobile
                 }}
             >
-                <Fab variant="extended" color="primary" aria-label="add" onClick={() => navigate('/shop/create')}>
+                <Fab
+                    variant="extended"
+                    color="primary"
+                    aria-label="add"
+                    onClick={() => navigate('/shop/create')}
+                    sx={{
+                        position: { xs: 'fixed', md: 'relative' },
+                        bottom: { xs: 16, md: 'auto' },
+                        right: { xs: 16, md: 'auto' },
+                        zIndex: { xs: 1000, md: 'auto' },
+                    }}
+                >
                     <AddIcon sx={{ mr: 1 }} />
-                    Ajouter une boutique
+                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Ajouter une boutique</Box>
                 </Fab>
             </Box>
 
@@ -113,11 +125,12 @@ const Home = () => {
                 sx={{
                     width: '100%',
                     display: 'flex',
-                    flexDirection: 'row',
+                    flexDirection: { xs: 'column', sm: 'row' }, // Colonne sur mobile
                     justifyContent: 'space-between',
+                    gap: 2, // Espacement entre les éléments
                 }}
             >
-                <FormControl sx={{ minWidth: 200 }}>
+                <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
                     <InputLabel id="demo-simple-select-label">Trier par</InputLabel>
                     <Select
                         labelId="demo-simple-select-label"

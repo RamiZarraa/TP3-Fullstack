@@ -5,24 +5,18 @@ import fr.fullstack.shopapp.service.ProductService;
 import fr.fullstack.shopapp.util.ErrorValidation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
@@ -30,14 +24,21 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/products")
+@Tag(name = "Products", description = "API de gestion des produits")
 public class ProductController {
 
     @Autowired
     private ProductService service;
 
-    @Operation(summary = "Create a product")
+    @Operation(summary = "Créer un produit", description = "Crée un nouveau produit avec ses traductions localisées")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Produit créé avec succès"),
+            @ApiResponse(responseCode = "400", description = "Données invalides")
+    })
     @PostMapping
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product, Errors errors) {
+    public ResponseEntity<Product> createProduct(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Données du produit à créer", required = true) @Valid @RequestBody Product product,
+            Errors errors) {
         if (errors.hasErrors()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, ErrorValidation.getErrorValidationMessage(errors));
@@ -50,9 +51,14 @@ public class ProductController {
         }
     }
 
-    @Operation(summary = "Delete a product by its id")
+    @Operation(summary = "Supprimer un produit", description = "Supprime un produit par son identifiant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Produit supprimé avec succès"),
+            @ApiResponse(responseCode = "400", description = "Produit introuvable ou erreur")
+    })
     @DeleteMapping("/{id}")
-    public HttpStatus deleteProduct(@PathVariable long id) {
+    public HttpStatus deleteProduct(
+            @Parameter(description = "ID du produit à supprimer", required = true) @PathVariable long id) {
         try {
             service.deleteProductById(id);
             return HttpStatus.NO_CONTENT;
@@ -61,9 +67,14 @@ public class ProductController {
         }
     }
 
-    @Operation(summary = "Get a product by id")
+    @Operation(summary = "Récupérer un produit", description = "Récupère un produit par son identifiant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Produit trouvé"),
+            @ApiResponse(responseCode = "400", description = "Produit introuvable")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable long id) {
+    public ResponseEntity<Product> getProductById(
+            @Parameter(description = "ID du produit", required = true) @PathVariable long id) {
         try {
             return ResponseEntity.ok().body(service.getProductById(id));
         } catch (Exception e) {
@@ -71,33 +82,44 @@ public class ProductController {
         }
     }
 
-    @Operation(summary = "Update a product")
-    @PutMapping
-    public ResponseEntity<Product> updateProduct(@Valid @RequestBody Product product, Errors errors) {
+    @Operation(summary = "Modifier un produit", description = "Met à jour un produit existant par son identifiant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Produit modifié avec succès"),
+            @ApiResponse(responseCode = "400", description = "Données invalides ou produit introuvable")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(
+            @Parameter(description = "ID du produit à modifier", required = true) @PathVariable Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Nouvelles données du produit", required = true) @Valid @RequestBody Product product,
+            Errors errors) {
         if (errors.hasErrors()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, ErrorValidation.getErrorValidationMessage(errors));
         }
 
         try {
+            product.setId(id);
             return ResponseEntity.ok().body(service.updateProduct(product));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    @Operation(summary = "Get products with search and sort options")
+    @Operation(summary = "Lister les produits", description = "Récupère une liste paginée de produits avec options de recherche, tri et filtrage")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès"),
+            @ApiResponse(responseCode = "400", description = "Paramètres invalides")
+    })
     @GetMapping
     public ResponseEntity<Page<Product>> getProducts(
-            @Parameter(description = "Search term") @RequestParam(required = false) String search,
-            @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "id") String sortBy,
-            @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDirection,
-            @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Shop ID") @RequestParam(required = false) Optional<Long> shopId,
-            @Parameter(description = "Category ID") @RequestParam(required = false) Optional<Long> categoryId) {
+            @Parameter(description = "Terme de recherche (nom ou description)") @RequestParam(required = false) String search,
+            @Parameter(description = "Champ de tri (id, price, name)") @RequestParam(defaultValue = "id") String sortBy,
+            @Parameter(description = "Direction du tri (asc, desc)") @RequestParam(defaultValue = "asc") String sortDirection,
+            @Parameter(description = "Numéro de page (commence à 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Nombre d'éléments par page") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "ID de la boutique pour filtrer") @RequestParam(required = false) Optional<Long> shopId,
+            @Parameter(description = "ID de la catégorie pour filtrer") @RequestParam(required = false) Optional<Long> categoryId) {
 
-        // ✅ CORRECTION : Créer le Sort AVANT le Pageable
         Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection)
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC;

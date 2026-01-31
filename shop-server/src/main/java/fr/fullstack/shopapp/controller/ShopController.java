@@ -33,9 +33,13 @@ import java.util.Optional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/v1/shops")
+@Tag(name = "Shops", description = "API de gestion des boutiques")
 public class ShopController {
 
     @Autowired
@@ -44,58 +48,59 @@ public class ShopController {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Operation(summary = "Get shops (sorting and filtering are possible)")
+    @Operation(summary = "Lister les boutiques", description = "Récupère une liste paginée de boutiques avec tri et filtres")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès"),
+            @ApiResponse(responseCode = "400", description = "Paramètres invalides")
+    })
     @GetMapping
     public ResponseEntity<Page<Shop>> getAllShops(
-            @Parameter(description = "Results page you want to retrieve (0..N)", example = "0") Pageable pageable,
-            @Parameter(description = "To sort the shops. Possible values are 'name', 'nbProducts' and 'createdAt'", example = "name") @RequestParam(required = false) Optional<String> sortBy,
-            @Parameter(description = "Define that the shops must be in vacations or not", example = "true") @RequestParam(required = false) Optional<Boolean> inVacations,
-            @Parameter(description = "Define that the shops must be created after this date", example = "2022-11-15") @RequestParam(required = false) Optional<String> createdAfter,
-            @Parameter(description = "Define that the shops must be created before this date", example = "2022-11-15") @RequestParam(required = false) Optional<String> createdBefore
-
-    ) {
+            @Parameter(description = "Numéro de page (0..N)", example = "0") Pageable pageable,
+            @Parameter(description = "Champ de tri (name, nbProducts, createdAt)", example = "name") @RequestParam(required = false) Optional<String> sortBy,
+            @Parameter(description = "Filtrer par congé", example = "true") @RequestParam(required = false) Optional<Boolean> inVacations,
+            @Parameter(description = "Boutiques créées après cette date", example = "2022-11-15") @RequestParam(required = false) Optional<String> createdAfter,
+            @Parameter(description = "Boutiques créées avant cette date", example = "2022-11-15") @RequestParam(required = false) Optional<String> createdBefore) {
         return ResponseEntity.ok(
                 service.getShopList(sortBy, inVacations, createdAfter, createdBefore, pageable));
     }
 
-    @Operation(summary = "Search shops using Elasticsearch (full-text search with filters)")
+    @Operation(summary = "Recherche plein texte boutiques", description = "Recherche Elasticsearch avec filtres")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Résultats trouvés"),
+            @ApiResponse(responseCode = "400", description = "Paramètres invalides")
+    })
     @GetMapping("/search")
     public ResponseEntity<Page<Shop>> searchShops(
-            @Parameter(description = "Search query for shop name (supports fuzzy matching)", example = "boutique") @RequestParam(required = false) String query,
-
-            @Parameter(description = "Filter by vacation status", example = "false") @RequestParam(required = false) Optional<Boolean> inVacations,
-
-            @Parameter(description = "Filter by opening day (MONDAY, TUESDAY, etc.)", example = "MONDAY") @RequestParam(required = false) Optional<DayOfWeek> openOn,
-
-            @Parameter(description = "Filter shops created after this date", example = "2020-01-01") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> createdAfter,
-
-            @Parameter(description = "Sort by field (name, createdAt, nbProducts)", example = "name") @RequestParam(required = false) String sort,
-
-            @Parameter(description = "Results page you want to retrieve (0..N)", example = "0") @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Number of records per page", example = "20") @RequestParam(defaultValue = "20") int size) {
-        // Créer le Pageable avec tri si demandé
+            @Parameter(description = "Recherche sur le nom", example = "boutique") @RequestParam(required = false) String query,
+            @Parameter(description = "Filtrer par congé", example = "false") @RequestParam(required = false) Optional<Boolean> inVacations,
+            @Parameter(description = "Filtrer par jour d'ouverture", example = "MONDAY") @RequestParam(required = false) Optional<DayOfWeek> openOn,
+            @Parameter(description = "Boutiques créées après cette date", example = "2020-01-01") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> createdAfter,
+            @Parameter(description = "Champ de tri", example = "name") @RequestParam(required = false) String sort,
+            @Parameter(description = "Numéro de page", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Taille de page", example = "20") @RequestParam(defaultValue = "20") int size) {
         Pageable pageable;
         if (sort != null && !sort.isBlank()) {
-            // Extraire la direction du tri (ex: "name,asc" ou "name,desc")
             String[] sortParams = sort.split(",");
             String field = sortParams[0];
             Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
                     ? Sort.Direction.DESC
                     : Sort.Direction.ASC;
-
             pageable = PageRequest.of(page, size, Sort.by(direction, field));
         } else {
             pageable = PageRequest.of(page, size);
         }
-
         return ResponseEntity.ok(
                 service.searchShops(query, inVacations, openOn, createdAfter, pageable));
     }
 
-    @Operation(summary = "Get a shop by id")
+    @Operation(summary = "Récupérer une boutique", description = "Récupère une boutique par son identifiant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Boutique trouvée"),
+            @ApiResponse(responseCode = "400", description = "Boutique introuvable")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<Shop> getShopById(@PathVariable long id) {
+    public ResponseEntity<Shop> getShopById(
+            @Parameter(description = "ID de la boutique", required = true) @PathVariable long id) {
         try {
             return ResponseEntity.ok().body(service.getShopById(id));
         } catch (Exception e) {
@@ -103,14 +108,19 @@ public class ShopController {
         }
     }
 
-    @Operation(summary = "Create a shop")
+    @Operation(summary = "Créer une boutique", description = "Crée une nouvelle boutique")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Boutique créée"),
+            @ApiResponse(responseCode = "400", description = "Données invalides")
+    })
     @PostMapping
-    public ResponseEntity<Shop> createShop(@Valid @RequestBody Shop shop, Errors errors) {
+    public ResponseEntity<Shop> createShop(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Données de la boutique à créer", required = true) @Valid @RequestBody Shop shop,
+            Errors errors) {
         if (errors.hasErrors()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, ErrorValidation.getErrorValidationMessage(errors));
         }
-
         try {
             return ResponseEntity.ok(service.createShop(shop));
         } catch (Exception e) {
@@ -118,14 +128,19 @@ public class ShopController {
         }
     }
 
-    @Operation(summary = "Update a shop")
+    @Operation(summary = "Modifier une boutique", description = "Met à jour une boutique existante")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Boutique modifiée"),
+            @ApiResponse(responseCode = "400", description = "Données invalides ou boutique introuvable")
+    })
     @PutMapping
-    public ResponseEntity<Shop> updateShop(@Valid @RequestBody Shop shop, Errors errors) {
+    public ResponseEntity<Shop> updateShop(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Nouvelles données de la boutique", required = true) @Valid @RequestBody Shop shop,
+            Errors errors) {
         if (errors.hasErrors()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, ErrorValidation.getErrorValidationMessage(errors));
         }
-
         try {
             return ResponseEntity.ok().body(service.updateShop(shop));
         } catch (Exception e) {
@@ -133,9 +148,14 @@ public class ShopController {
         }
     }
 
-    @Operation(summary = "Delete a shop by its id")
+    @Operation(summary = "Supprimer une boutique", description = "Supprime une boutique par son identifiant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Boutique supprimée"),
+            @ApiResponse(responseCode = "400", description = "Boutique introuvable ou erreur")
+    })
     @DeleteMapping("/{id}")
-    public HttpStatus deleteShop(@PathVariable long id) {
+    public HttpStatus deleteShop(
+            @Parameter(description = "ID de la boutique à supprimer", required = true) @PathVariable long id) {
         try {
             service.deleteShopById(id);
             return HttpStatus.NO_CONTENT;
@@ -144,7 +164,11 @@ public class ShopController {
         }
     }
 
-    @Operation(summary = "Reindex all shops in Elasticsearch (run once to populate the index)")
+    @Operation(summary = "Réindexer toutes les boutiques dans Elasticsearch", description = "Lance la réindexation complète (à utiliser pour initialiser l'index)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Réindexation terminée"),
+            @ApiResponse(responseCode = "500", description = "Erreur lors de la réindexation")
+    })
     @PostMapping("/reindex")
     public ResponseEntity<String> reindexShops() {
         try {
@@ -154,8 +178,7 @@ public class ShopController {
             return ResponseEntity.ok("✅ Reindexing completed! 10 shops indexed.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return ResponseEntity.status(500).body("❌ Reindexing interrupted: " + e.getMessage());
+            return ResponseEntity.status(500).body(" Reindexing interrupted: " + e.getMessage());
         }
     }
-
 }

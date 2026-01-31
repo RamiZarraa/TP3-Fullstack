@@ -85,9 +85,20 @@ const Products = () => {
             <Typography variant="h2">Les produits</Typography>
 
             <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', mb: 2 }}>
-                <Fab variant="extended" color="primary" aria-label="add" onClick={() => navigate('/product/create')}>
+                <Fab
+                    variant="extended"
+                    color="primary"
+                    aria-label="add"
+                    onClick={() => navigate('/product/create')}
+                    sx={{
+                        position: { xs: 'fixed', md: 'relative' },
+                        bottom: { xs: 16, md: 'auto' },
+                        right: { xs: 16, md: 'auto' },
+                        zIndex: { xs: 1000, md: 'auto' },
+                    }}
+                >
                     <AddIcon sx={{ mr: 1 }} />
-                    Ajouter un produit
+                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Ajouter un produit</Box>
                 </Fab>
             </Box>
 

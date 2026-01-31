@@ -66,7 +66,7 @@ const ShopProducts = ({ shopId }: Props) => {
 
             <Grid container alignItems="center" rowSpacing={3} columnSpacing={3}>
                 {products?.map((product) => (
-                    <Grid item key={product.id} xs={4}>
+                    <Grid item key={product.id} xs={12} sm={6} md={4}>
                         <ProductCard product={product} />
                     </Grid>
                 ))}
